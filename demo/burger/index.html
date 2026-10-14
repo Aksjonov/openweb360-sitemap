@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cinder Smash Burgers</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="robots" content="noindex">
+<meta name="description" content="Smashed-to-order burgers on a 400°F flat-top in Riverside, CA. Call ahead or walk in.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800;900&family=Instrument+Sans:wght@400;500;600&display=swap">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Restaurant","name":"Cinder Smash Burgers","servesCuisine":"Burgers","priceRange":"$10–20","telephone":"+1-951-555-0142","address":{"@type":"PostalAddress","streetAddress":"1180 Market St","addressLocality":"Riverside","addressRegion":"CA","postalCode":"92501","addressCountry":"US"},"aggregateRating":{"@type":"AggregateRating","ratingValue":"4.8","reviewCount":"612"}}
+</script>
+<style>
+/* Layout: full-bleed cinematic hero (video slot) → ticket-strip facts → menu board → reviews → hours + location → sticky call bar on phones. Single dark "grill at night" world. */
+:root {
+  --char: #120d0a;      /* page ground: burnt cast iron */
+  --smoke: #1d1611;     /* raised surfaces */
+  --ash: #3a2e25;       /* hairlines */
+  --bun: #f3e6d3;       /* main text */
+  --crust: #b9a48c;     /* secondary text */
+  --ember: #ff6a1a;     /* accent: flame */
+  --cheddar: #f5b52e;   /* highlight: melted cheese */
+  --open: #6fd08c;
+  --display: "Big Shoulders Display", "Oswald", Impact, "Arial Narrow", sans-serif;
+  --body: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+  --gutter-l: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--char); color: var(--bun);
+  font: 400 16px/1.6 var(--body);
+  -webkit-font-smoothing: antialiased;
+}
+img, video, canvas { max-width: 100%; display: block; }
+a { color: inherit; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--cheddar); outline-offset: 3px; border-radius: 4px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-left: var(--gutter-l); padding-right: var(--gutter-r); }
+h1, h2, h3 { font-family: var(--display); font-weight: 800; line-height: .92; margin: 0; text-wrap: balance; text-transform: uppercase; letter-spacing: .01em; }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--ember); }
+
+/* Demo ribbon */
+.demo {
+  position: fixed; z-index: 30; top: calc(12px + env(safe-area-inset-top, 0px)); right: calc(12px + env(safe-area-inset-right, 0px));
+  font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+  background: rgba(18,13,10,.7); border: 1px solid var(--ash); color: var(--crust);
+  padding: 6px 10px; border-radius: 999px; backdrop-filter: blur(8px);
+}
+
+/* HERO */
+.hero { position: relative; min-height: min(92vh, 860px); display: grid; align-items: end; overflow: hidden; isolation: isolate; }
+.hero-media { position: absolute; inset: 0; z-index: -2; }
+.hero-media video, .hero-media canvas { width: 100%; height: 100%; object-fit: cover; }
+.hero-media video:not([data-ready]) { display: none; }
+.hero::after {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(18,13,10,.55) 0%, rgba(18,13,10,0) 30%, rgba(18,13,10,.35) 60%, var(--char) 100%),
+    linear-gradient(90deg, rgba(18,13,10,.7) 0%, rgba(18,13,10,0) 65%);
+}
+.slot-label {
+  position: absolute; top: calc(56px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%);
+  font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--crust);
+  border: 1px dashed var(--ash); padding: 6px 12px; border-radius: 6px; white-space: nowrap;
+}
+.hero-inner { padding-block: 120px 56px; display: grid; gap: 22px; }
+.hero h1 { font-size: clamp(64px, 14vw, 168px); font-weight: 900; }
+.hero h1 span { display: block; color: var(--cheddar); }
+.tagline { font-size: clamp(17px, 2.2vw, 21px); color: var(--bun); max-width: 34ch; margin: 0; }
+.status { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--crust); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--crust); }
+.status[data-open="true"] .dot { background: var(--open); box-shadow: 0 0 0 4px rgba(111,208,140,.18); }
+.status[data-open="true"] b { color: var(--open); }
+.ctas { display: flex; flex-wrap: wrap; gap: 12px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 10px; text-decoration: none;
+  font-weight: 600; font-size: 16px; padding: 15px 24px; border-radius: 999px;
+  transition: transform .15s ease, background .15s ease;
+}
+.btn:hover { transform: translateY(-2px); }
+.btn-fire { background: var(--ember); color: var(--char); }
+.btn-fire:hover { background: #ff7f3a; }
+.btn-ghost { border: 1px solid rgba(243,230,211,.35); color: var(--bun); background: rgba(18,13,10,.35); backdrop-filter: blur(6px); }
+.btn svg { width: 18px; height: 18px; }
+
+/* FACT STRIP */
+.facts { border-block: 1px solid var(--ash); }
+.facts .wrap { display: grid; grid-template-columns: repeat(4, 1fr); }
+.fact { padding-block: 22px; display: grid; gap: 2px; }
+.fact + .fact { border-left: 1px solid var(--ash); padding-left: 20px; }
+.fact strong { font-family: var(--display); font-size: 34px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.fact span { font-size: 13px; color: var(--crust); }
+.stars { color: var(--cheddar); letter-spacing: 2px; }
+
+section { padding-block: 88px; }
+.sec-head { display: grid; gap: 12px; margin-bottom: 40px; }
+.sec-head h2 { font-size: clamp(44px, 7vw, 80px); }
+.sec-head p { margin: 0; color: var(--crust); max-width: 52ch; }
+
+/* ABOUT */
+.about .wrap { display: grid; grid-template-columns: 1.1fr 1fr; gap: 56px; align-items: center; }
+.about p { margin: 0 0 14px; color: var(--crust); max-width: 52ch; }
+.about p:first-of-type { color: var(--bun); font-size: 19px; }
+.temp { font-family: var(--display); font-weight: 900; font-size: clamp(110px, 18vw, 210px); line-height: .8; color: transparent; -webkit-text-stroke: 1.5px var(--ember); text-align: right; }
+.temp small { display: block; font-size: 15px; font-family: var(--body); font-weight: 500; -webkit-text-stroke: 0; color: var(--crust); letter-spacing: .14em; text-transform: uppercase; margin-top: 14px; }
+
+/* MENU BOARD */
+.menu { background: var(--smoke); }
+.board { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 56px; }
+.item { display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; padding-block: 20px; border-bottom: 1px dashed var(--ash); }
+.item h3 { font-size: 28px; font-weight: 800; }
+.item .price { font-family: var(--display); font-size: 28px; font-weight: 800; color: var(--cheddar); font-variant-numeric: tabular-nums; }
+.item p { grid-column: 1 / -1; margin: 0; color: var(--crust); font-size: 15px; }
+.tag { display: inline-block; margin-left: 8px; vertical-align: middle; font-family: var(--body); font-size: 10px; font-weight: 600; letter-spacing: .12em; padding: 3px 7px; border-radius: 4px; background: var(--ember); color: var(--char); }
+
+/* REVIEWS */
+.reviews-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.review { padding: 26px; border: 1px solid var(--ash); border-radius: 14px; display: grid; gap: 14px; align-content: start; }
+.review blockquote { margin: 0; font-size: 17px; line-height: 1.5; }
+.review footer { font-size: 13px; color: var(--crust); }
+
+/* VISIT */
+.visit .wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; }
+.hours { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.hours td { padding: 12px 0; border-bottom: 1px solid var(--ash); }
+.hours td:last-child { text-align: right; color: var(--crust); }
+.hours tr[data-today] td { color: var(--cheddar); font-weight: 600; }
+.place { display: grid; gap: 18px; align-content: start; }
+.mapcard {
+  position: relative; aspect-ratio: 16 / 10; max-width: 100%; border-radius: 14px; overflow: hidden; border: 1px solid var(--ash);
+  background:
+    repeating-linear-gradient(0deg, transparent 0 38px, rgba(185,164,140,.07) 38px 40px),
+    repeating-linear-gradient(90deg, transparent 0 58px, rgba(185,164,140,.07) 58px 60px),
+    linear-gradient(135deg, #1f1813, #16110d);
+}
+.mapcard::before { content: ""; position: absolute; left: -10%; right: -10%; top: 58%; height: 14px; background: rgba(185,164,140,.12); transform: rotate(-8deg); }
+.pin { position: absolute; left: 50%; top: 46%; transform: translate(-50%, -100%); width: 34px; height: 34px; border-radius: 50% 50% 50% 0; rotate: -45deg; background: var(--ember); box-shadow: 0 0 0 10px rgba(255,106,26,.15); }
+.addr { font-size: 19px; margin: 0; }
+.phone { font-family: var(--display); font-size: 34px; font-weight: 800; letter-spacing: .02em; user-select: all; }
+
+footer.site { border-top: 1px solid var(--ash); padding-block: 32px 110px; color: var(--crust); font-size: 13px; }
+footer.site .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+
+/* Sticky call bar (phones) */
+.callbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; display: none; gap: 10px;
+  padding: 10px var(--gutter-r) calc(10px + env(safe-area-inset-bottom, 0px)) var(--gutter-l);
+  background: rgba(18,13,10,.88); backdrop-filter: blur(10px); border-top: 1px solid var(--ash);
+}
+.callbar .btn { flex: 1; justify-content: center; padding: 14px; }
+
+@media (max-width: 820px) {
+  .facts .wrap { grid-template-columns: repeat(2, 1fr); }
+  .fact:nth-child(3) { border-left: 0; padding-left: 0; }
+  .fact:nth-child(n+3) { border-top: 1px solid var(--ash); }
+  .about .wrap, .visit .wrap { grid-template-columns: 1fr; gap: 36px; }
+  .temp { text-align: left; }
+  .board { grid-template-columns: 1fr; }
+  .reviews-grid { grid-template-columns: 1fr; }
+  .callbar { display: flex; }
+  .hero .ctas { display: none; }
+  section { padding-block: 64px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .btn { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="demo">Demo site</div>
+
+<header class="hero" id="top">
+  <div class="hero-media">
+    <!-- ВИДЕО ИЗ HIGGSFIELD: положите файл рядом (hero.mp4) и раскомментируйте <source>.
+         Пока видео нет, показывается анимированная заглушка (canvas с углями). -->
+    <video id="heroVideo" autoplay muted loop playsinline preload="auto">
+      <!-- <source src="hero.mp4" type="video/mp4"> -->
+    </video>
+    <canvas id="embers" aria-hidden="true"></canvas>
+  </div>
+  <div class="slot-label" id="slotLabel">Higgsfield video goes here</div>
+  <div class="wrap hero-inner">
+    <span class="eyebrow">Riverside, CA · Since 2019</span>
+    <h1>Cinder <span>Smash</span></h1>
+    <p class="tagline">Two thin patties smashed on a 400° flat-top until the edges go crisp, then buried in melted cheddar.</p>
+    <span class="status" id="status"><i class="dot"></i><span id="statusText">Checking hours…</span></span>
+    <div class="ctas">
+      <a class="btn btn-fire" href="tel:+19515550142">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>
+        Call (951) 555-0142
+      </a>
+      <a class="btn btn-ghost" href="https://www.google.com/maps/search/?api=1&query=1180+Market+St+Riverside+CA+92501" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>
+        Get directions
+      </a>
+    </div>
+  </div>
+</header>
+
+<div class="facts">
+  <div class="wrap">
+    <div class="fact"><strong>4.8 <span class="stars">★</span></strong><span>612 Google reviews</span></div>
+    <div class="fact"><strong>$10–20</strong><span>per person</span></div>
+    <div class="fact"><strong>8 min</strong><span>average ticket time</span></div>
+    <div class="fact"><strong>100%</strong><span>beef ground in-house daily</span></div>
+  </div>
+</div>
+
+<section class="about">
+  <div class="wrap">
+    <div>
+      <div class="sec-head"><span class="eyebrow">How we cook</span><h2>Smashed to order</h2></div>
+      <p>Every burger starts as a ball of fresh chuck and brisket. It hits the griddle, gets pressed flat, and sears in its own fat until the crust turns deep brown.</p>
+      <p>We flip once, add American or sharp cheddar, and stack it on a butter-toasted potato bun. No heat lamps, no pre-cooked patties.</p>
+    </div>
+    <div class="temp" aria-label="Griddle temperature 400 degrees Fahrenheit">400°<small>Flat-top surface temp, °F</small></div>
+  </div>
+</section>
+
+<section class="menu" id="menu">
+  <div class="wrap">
+    <div class="sec-head"><span class="eyebrow">Menu</span><h2>The board</h2><p>Double patties come standard. Add a third for $3.</p></div>
+    <div class="board">
+      <div class="item"><h3>Cinder Double <span class="tag">BEST SELLER</span></h3><span class="price">$11.50</span><p>Two smashed patties, American cheese, grilled onions, pickles, house sauce.</p></div>
+      <div class="item"><h3>Cheddar Melt</h3><span class="price">$12.75</span><p>Sharp cheddar, caramelized onions, garlic aioli, on griddled sourdough.</p></div>
+      <div class="item"><h3>Ember Jalapeño</h3><span class="price">$12.50</span><p>Pepper jack, charred jalapeños, chipotle mayo, crispy shallots.</p></div>
+      <div class="item"><h3>Bacon Smash</h3><span class="price">$13.25</span><p>Thick-cut bacon, American cheese, lettuce, tomato, house sauce.</p></div>
+      <div class="item"><h3>Shoestring Fries</h3><span class="price">$4.50</span><p>Hand-cut, double-fried, sea salt. Make them animal style for $2.</p></div>
+      <div class="item"><h3>Malted Shake</h3><span class="price">$6.75</span><p>Vanilla, chocolate or strawberry, spun with malt powder.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="reviews">
+  <div class="wrap">
+    <div class="sec-head"><span class="eyebrow">Reviews</span><h2>What Riverside says</h2></div>
+    <div class="reviews-grid">
+      <article class="review"><span class="stars">★★★★★</span><blockquote>The crust on these patties is unreal. Best smash burger in the Inland Empire, and I've tried most of them.</blockquote><footer>Marcus T. · Google review</footer></article>
+      <article class="review"><span class="stars">★★★★★</span><blockquote>Ordered at the counter and had my food in under ten minutes. The Ember Jalapeño has real heat.</blockquote><footer>Priya S. · Google review</footer></article>
+      <article class="review"><span class="stars">★★★★★</span><blockquote>Small spot, friendly crew, and the malted shake tastes like the old diners. We come every Friday now.</blockquote><footer>Dana R. · Google review</footer></article>
+    </div>
+  </div>
+</section>
+
+<section class="visit" id="visit">
+  <div class="wrap">
+    <div>
+      <div class="sec-head"><span class="eyebrow">Hours</span><h2>When the grill is hot</h2></div>
+      <table class="hours" id="hours"><tbody></tbody></table>
+    </div>
+    <div class="place">
+      <div class="sec-head"><span class="eyebrow">Find us</span><h2>Downtown Riverside</h2></div>
+      <div class="mapcard" role="img" aria-label="Map placeholder showing the restaurant location"><span class="pin"></span></div>
+      <p class="addr">1180 Market St, Riverside, CA 92501</p>
+      <div class="phone">(951) 555-0142</div>
+      <div class="ctas">
+        <a class="btn btn-ghost" href="https://www.google.com/maps/search/?api=1&query=1180+Market+St+Riverside+CA+92501" target="_blank" rel="noopener">Open in Google Maps</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="wrap">
+    <span>© Cinder Smash Burgers · Riverside, CA</span>
+    <span>Demo concept. Business details are placeholders.</span>
+  </div>
+</footer>
+
+<nav class="callbar" aria-label="Quick actions">
+  <a class="btn btn-fire" href="tel:+19515550142">Call now</a>
+  <a class="btn btn-ghost" href="https://www.google.com/maps/search/?api=1&query=1180+Market+St+Riverside+CA+92501" target="_blank" rel="noopener">Directions</a>
+</nav>
+
+<script>
+(function () {
+  // ---- Hours + open-now (restaurant local time) ----
+  var TZ = "America/Los_Angeles";
+  var HOURS = [ // [open, close] in 24h, index 0 = Sunday
+    [12, 21], [11, 22], [11, 22], [11, 22], [11, 22], [11, 23], [11, 23]
+  ];
+  var NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  function fmt(h) { var s = h >= 12 ? "pm" : "am"; var x = h % 12 || 12; return x + s; }
+  function localNow() {
+    try {
+      var parts = new Intl.DateTimeFormat("en-US", { timeZone: TZ, weekday: "short", hour: "numeric", minute: "numeric", hour12: false }).formatToParts(new Date());
+      var map = {}; parts.forEach(function (p) { map[p.type] = p.value; });
+      var day = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].indexOf(map.weekday);
+      return { day: day, hour: (parseInt(map.hour, 10) % 24) + parseInt(map.minute, 10) / 60 };
+    } catch (e) { var d = new Date(); return { day: d.getDay(), hour: d.getHours() + d.getMinutes() / 60 }; }
+  }
+  var now = localNow();
+  var tbody = document.querySelector("#hours tbody");
+  [1, 2, 3, 4, 5, 6, 0].forEach(function (i) {
+    var tr = document.createElement("tr");
+    if (i === now.day) tr.setAttribute("data-today", "");
+    tr.innerHTML = "<td>" + NAMES[i] + (i === now.day ? " · today" : "") + "</td><td>" + fmt(HOURS[i][0]) + " – " + fmt(HOURS[i][1]) + "</td>";
+    tbody.appendChild(tr);
+  });
+  var h = HOURS[now.day], open = now.hour >= h[0] && now.hour < h[1];
+  var status = document.getElementById("status");
+  status.setAttribute("data-open", open);
+  document.getElementById("statusText").innerHTML = open
+    ? "<b>Open now</b> · until " + fmt(h[1])
+    : "Closed now · opens " + (now.hour < h[0] ? "today at " + fmt(h[0]) : NAMES[(now.day + 1) % 7] + " at " + fmt(HOURS[(now.day + 1) % 7][0]));
+
+  // ---- Hero: real video if provided, otherwise ember placeholder ----
+  var video = document.getElementById("heroVideo");
+  var canvas = document.getElementById("embers");
+  var label = document.getElementById("slotLabel");
+  if (video.querySelector("source")) {
+    video.addEventListener("canplay", function () {
+      video.setAttribute("data-ready", ""); canvas.hidden = true; label.hidden = true;
+    }, { once: true });
+  }
+
+  var ctx = canvas.getContext("2d");
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var W, H, DPR, sparks = [];
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = canvas.clientWidth; H = canvas.clientHeight;
+    canvas.width = W * DPR; canvas.height = H * DPR;
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+  function spawn(init) {
+    return {
+      x: Math.random() * W,
+      y: init ? Math.random() * H : H + 10,
+      r: Math.random() * 2.2 + .4,
+      vy: Math.random() * .9 + .35,
+      vx: (Math.random() - .5) * .4,
+      life: Math.random() * .6 + .4,
+      t: Math.random() * 6.28
+    };
+  }
+  function bg(t) {
+    // molten glow rising from the bottom, slowly breathing
+    var pulse = .85 + Math.sin(t / 1400) * .15;
+    var g = ctx.createRadialGradient(W * .68, H * 1.05, 10, W * .68, H * 1.05, Math.max(W, H) * .9);
+    g.addColorStop(0, "rgba(255,140,40," + (.55 * pulse) + ")");
+    g.addColorStop(.25, "rgba(220,70,15," + (.35 * pulse) + ")");
+    g.addColorStop(.6, "rgba(70,22,8,.35)");
+    g.addColorStop(1, "rgba(18,13,10,1)");
+    ctx.fillStyle = "#120d0a"; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    // second softer hotspot
+    var g2 = ctx.createRadialGradient(W * .3, H * .95, 5, W * .3, H * .95, W * .45);
+    g2.addColorStop(0, "rgba(245,181,46," + (.18 * pulse) + ")");
+    g2.addColorStop(1, "rgba(245,181,46,0)");
+    ctx.fillStyle = g2; ctx.fillRect(0, 0, W, H);
+  }
+  function frame(t) {
+    bg(t);
+    ctx.globalCompositeOperation = "lighter";
+    for (var i = 0; i < sparks.length; i++) {
+      var s = sparks[i];
+      s.t += .03; s.y -= s.vy; s.x += s.vx + Math.sin(s.t) * .3;
+      var a = Math.max(0, Math.min(1, s.y / H)) * s.life;
+      ctx.beginPath();
+      ctx.fillStyle = "rgba(255," + (120 + (s.r * 40 | 0)) + ",40," + a + ")";
+      ctx.shadowColor = "rgba(255,110,30," + a + ")"; ctx.shadowBlur = 12;
+      ctx.arc(s.x, s.y, s.r, 0, 6.283); ctx.fill();
+      if (s.y < -10) sparks[i] = spawn(false);
+    }
+    ctx.shadowBlur = 0;
+    ctx.globalCompositeOperation = "source-over";
+    if (!reduce && !canvas.hidden) requestAnimationFrame(frame);
+  }
+  resize();
+  var n = Math.round(Math.min(140, W * H / 9000));
+  for (var i = 0; i < n; i++) sparks.push(spawn(true));
+  window.addEventListener("resize", resize);
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
