@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Мои финансы</title>
+<style>
+  :root {
+    --bg: #f2f2f7; --card: #fff; --text: #1c1c1e; --muted: #8e8e93; --line: #e5e5ea;
+    --green: #248a3d; --red: #d70015; --blue: #007aff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #000; --card: #1c1c1e; --text: #f2f2f7; --muted: #8e8e93; --line: #38383a;
+      --green: #30d158; --red: #ff453a; --blue: #0a84ff; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+    background: var(--bg); color: var(--text); }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 16px; }
+  header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
+  h1 { font-size: 24px; margin: 0; }
+  h2 { font-size: 13px; margin: 0 0 10px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
+  input, select, button { font: inherit; color: inherit; }
+  input, select { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; min-width: 0; }
+  button { background: var(--blue); color: #fff; border: 0; border-radius: 10px; padding: 9px 14px; cursor: pointer; }
+  button.ghost { background: var(--bg); color: var(--blue); border: 1px solid var(--line); }
+  nav { display: flex; gap: 6px; background: var(--card); padding: 4px; border-radius: 12px; margin-bottom: 14px; }
+  nav button { flex: 1; background: none; color: var(--muted); padding: 8px 4px; }
+  nav button.on { background: var(--bg); color: var(--text); font-weight: 600; }
+  .card { background: var(--card); border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .grid .card { margin: 0; }
+  .stat span { color: var(--muted); font-size: 13px; }
+  .stat b { display: block; font-size: 20px; margin-top: 4px; }
+  .form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .full { grid-column: 1 / -1; }
+  .item { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); }
+  .item:first-child, .debt:first-child { border-top: 0; }
+  .debt { padding: 12px 0; border-top: 1px solid var(--line); }
+  .muted { color: var(--muted); font-size: 13px; }
+  .pos { color: var(--green); }
+  .neg { color: var(--red); }
+  .right { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .between { justify-content: space-between; }
+  .x { background: none; color: var(--muted); padding: 0 4px; font-size: 20px; line-height: 1; }
+  .track { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; margin: 8px 0 6px; }
+  .track i { display: block; height: 100%; background: var(--blue); }
+  .bar-head { display: flex; justify-content: space-between; font-size: 14px; margin-top: 10px; }
+  .summary { line-height: 1.9; }
+  .pay input { flex: 1; }
+  .hint { color: var(--muted); font-size: 13px; margin: 0 4px 14px; }
+  .empty { color: var(--muted); text-align: center; padding: 12px 0; }
+  [hidden] { display: none !important; }
+  @media (max-width: 480px) { .form { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Мои финансы</h1>
+    <input type="month" id="month" aria-label="Месяц">
+  </header>
+
+  <nav>
+    <button data-tab="overview" class="on">Обзор</button>
+    <button data-tab="tx">Операции</button>
+    <button data-tab="subs">Подписки</button>
+    <button data-tab="debts">Долги</button>
+  </nav>
+
+  <section id="overview">
+    <div class="grid">
+      <div class="card stat"><span>Доходы</span><b id="sIncome" class="pos"></b></div>
+      <div class="card stat"><span>Расходы</span><b id="sExpense" class="neg"></b></div>
+      <div class="card stat"><span>Подписки в месяц</span><b id="sSubs"></b></div>
+      <div class="card stat"><span>Остаток</span><b id="sBalance"></b></div>
+    </div>
+
+    <div class="card">
+      <h2>Долги</h2>
+      <div class="summary">Я должен: <b id="dOwe"></b><br>Мне должны: <b id="dOwed"></b></div>
+    </div>
+
+    <div class="card">
+      <h2>Расходы по категориям</h2>
+      <div id="cats"></div>
+    </div>
+
+    <p class="hint">Остаток = доходы − расходы − подписки за месяц. Подписки считаются каждый месяц сами, их оплаты не добавляйте в «Операции». Платежи по долгам ведутся в разделе «Долги» и на остаток не влияют.</p>
+
+    <div class="card">
+      <h2>Данные</h2>
+      <div class="row between">
+        <label class="muted">Валюта <input id="currency" maxlength="6" style="width:90px"></label>
+        <div class="row">
+          <button class="ghost" id="exportBtn">Экспорт</button>
+          <button class="ghost" id="importBtn">Импорт</button>
+          <input type="file" id="importFile" accept="application/json" hidden>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tx" hidden>
+    <form id="txForm" class="card form">
+      <select id="txType">
+        <option value="expense">Расход</option>
+        <option value="income">Доход</option>
+      </select>
+      <input id="txAmount" placeholder="Сумма" inputmode="decimal" autocomplete="off">
+      <select id="txCat"></select>
+      <input id="txDate" type="date">
+      <input id="txNote" class="full" placeholder="Комментарий, например «зарплата за октябрь»">
+      <button class="full">Добавить</button>
+    </form>
+    <div class="card" id="txList"></div>
+  </section>
+
+  <section id="subs" hidden>
+    <form id="subForm" class="card form">
+      <input id="subName" class="full" placeholder="Название, например Netflix">
+      <input id="subAmount" placeholder="Сумма" inputmode="decimal" autocomplete="off">
+      <select id="subPeriod">
+        <option value="month">в месяц</option>
+        <option value="year">в год</option>
+      </select>
+      <button class="full">Добавить подписку</button>
+    </form>
+    <div class="card"><div class="summary" id="subTotals"></div></div>
+    <div class="card" id="subList"></div>
+  </section>
+
+  <section id="debts" hidden>
+    <form id="debtForm" class="card form">
+      <input id="debtName" class="full" placeholder="Кому или от кого">
+      <input id="debtAmount" placeholder="Сумма" inputmode="decimal" autocomplete="off">
+      <select id="debtDir">
+        <option value="owe">Я должен</option>
+        <option value="owed">Мне должны</option>
+      </select>
+      <button class="full">Добавить долг</button>
+    </form>
+    <div class="card"><h2>Я должен</h2><div id="debtsOwe"></div></div>
+    <div class="card"><h2>Мне должны</h2><div id="debtsOwed"></div></div>
+  </section>
+</div>
+
+<script>
+const KEY = 'money-app-v1';
+const INCOME_CATS = ['Зарплата', 'Доход от фирмы', 'Прочее'];
+const EXPENSE_CATS = ['Продукты', 'Транспорт', 'Жильё', 'Здоровье', 'Развлечения', 'Одежда', 'Прочее'];
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const todayISO = () => { const d = new Date(); return new Date(d - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
+const sum = arr => arr.reduce((s, x) => s + x, 0);
+const parseAmount = v => {
+  const n = parseFloat(String(v).replace(/\s/g, '').replace(',', '.'));
+  return Number.isFinite(n) && n > 0 ? Math.round(n * 100) / 100 : null;
+};
+const fmt = n => new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(n) + ' ' + state.currency;
+const fmtDate = d => new Date(d + 'T00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+
+const load = () => {
+  const empty = { tx: [], subs: [], debts: [], currency: '₽' };
+  try { return { ...empty, ...JSON.parse(localStorage.getItem(KEY)) }; }
+  catch { return empty; }
+};
+let state = load();
+let month = todayISO().slice(0, 7);
+
+const save = () => {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); }
+  catch { alert('Не удалось сохранить данные: хранилище браузера недоступно.'); }
+  render();
+};
+
+const monthly = s => s.period === 'year' ? s.amount / 12 : s.amount;
+const debtLeft = d => Math.max(0, d.total - sum(d.payments.map(p => p.amount)));
+const monthTx = () => state.tx.filter(t => t.date.startsWith(month));
+
+function render() {
+  $('month').value = month;
+  $('currency').value = state.currency;
+  renderOverview();
+  renderTx();
+  renderSubs();
+  renderDebts();
+}
+
+function renderOverview() {
+  const tx = monthTx();
+  const expenses = tx.filter(t => t.type === 'expense');
+  const income = sum(tx.filter(t => t.type === 'income').map(t => t.amount));
+  const expense = sum(expenses.map(t => t.amount));
+  const subs = sum(state.subs.map(monthly));
+  const balance = income - expense - subs;
+
+  $('sIncome').textContent = fmt(income);
+  $('sExpense').textContent = fmt(expense);
+  $('sSubs').textContent = fmt(subs);
+  $('sBalance').textContent = fmt(balance);
+  $('sBalance').className = balance < 0 ? 'neg' : 'pos';
+
+  const owe = sum(state.debts.filter(d => d.direction === 'owe').map(debtLeft));
+  const owed = sum(state.debts.filter(d => d.direction === 'owed').map(debtLeft));
+  $('dOwe').textContent = fmt(owe);
+  $('dOwed').textContent = fmt(owed);
+
+  const byCat = {};
+  expenses.forEach(t => { byCat[t.category] = (byCat[t.category] || 0) + t.amount; });
+  const cats = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
+  $('cats').innerHTML = cats.length
+    ? cats.map(([name, value]) => `
+        <div class="bar-head"><span>${esc(name)}</span><span>${fmt(value)}</span></div>
+        <div class="track"><i style="width:${(value / expense * 100).toFixed(1)}%"></i></div>`).join('')
+    : '<div class="empty">Расходов за этот месяц нет</div>';
+}
+
+function renderTx() {
+  const list = monthTx().sort((a, b) => b.date.localeCompare(a.date));
+  $('txList').innerHTML = list.length
+    ? list.map(t => `
+        <div class="item">
+          <div>
+            <b>${esc(t.category)}</b>
+            <div class="muted">${fmtDate(t.date)}${t.note ? ' · ' + esc(t.note) : ''}</div>
+          </div>
+          <div class="right">
+            <b class="${t.type === 'income' ? 'pos' : 'neg'}">${t.type === 'income' ? '+' : '−'}${fmt(t.amount)}</b>
+            <button class="x" data-del="tx:${t.id}" title="Удалить">×</button>
+          </div>
+        </div>`).join('')
+    : '<div class="empty">Операций за этот месяц нет</div>';
+}
+
+function renderSubs() {
+  const total = sum(state.subs.map(monthly));
+  $('subTotals').innerHTML = `Всего в месяц: <b>${fmt(total)}</b><br>Всего в год: <b>${fmt(total * 12)}</b>`;
+  $('subList').innerHTML = state.subs.length
+    ? state.subs.map(s => `
+        <div class="item">
+          <div>
+            <b>${esc(s.name)}</b>
+            <div class="muted">${fmt(s.amount)} ${s.period === 'year' ? 'в год · ' + fmt(monthly(s)) + ' в месяц' : 'в месяц'}</div>
+          </div>
+          <div class="right"><button class="x" data-del="subs:${s.id}" title="Удалить">×</button></div>
+        </div>`).join('')
+    : '<div class="empty">Подписок пока нет</div>';
+}
+
+function renderDebts() {
+  const card = d => {
+    const left = debtLeft(d);
+    const paid = (d.total - left) / d.total * 100;
+    return `
+      <div class="debt">
+        <div class="row between">
+          <b>${esc(d.name)}</b>
+          <button class="x" data-del="debts:${d.id}" title="Удалить">×</button>
+        </div>
+        <div class="muted">Сумма ${fmt(d.total)} · осталось <b>${fmt(left)}</b></div>
+        <div class="track"><i style="width:${paid.toFixed(1)}%"></i></div>
+        ${left > 0
+          ? `<form class="row pay" data-pay="${d.id}">
+               <input name="amount" placeholder="Сумма платежа" inputmode="decimal" autocomplete="off">
+               <button>${d.direction === 'owe' ? 'Заплатил' : 'Получил'}</button>
+             </form>`
+          : '<div class="muted">Погашено ✓</div>'}
+      </div>`;
+  };
+  const owe = state.debts.filter(d => d.direction === 'owe');
+  const owed = state.debts.filter(d => d.direction === 'owed');
+  $('debtsOwe').innerHTML = owe.map(card).join('') || '<div class="empty">Долгов нет</div>';
+  $('debtsOwed').innerHTML = owed.map(card).join('') || '<div class="empty">Никто вам не должен</div>';
+}
+
+function fillCats() {
+  const cats = $('txType').value === 'income' ? INCOME_CATS : EXPENSE_CATS;
+  $('txCat').innerHTML = cats.map(c => `<option>${esc(c)}</option>`).join('');
+}
+
+// Tabs
+document.querySelectorAll('nav button').forEach(btn => btn.onclick = () => {
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b === btn));
+  document.querySelectorAll('section').forEach(s => { s.hidden = s.id !== btn.dataset.tab; });
+});
+
+// Month and currency
+$('month').onchange = e => { month = e.target.value || todayISO().slice(0, 7); render(); };
+$('currency').onchange = e => { state.currency = e.target.value.trim() || '₽'; save(); };
+
+// Operations
+$('txType').onchange = fillCats;
+$('txForm').onsubmit = e => {
+  e.preventDefault();
+  const amount = parseAmount($('txAmount').value);
+  const date = $('txDate').value;
+  if (!amount || !date) { alert('Введите сумму больше нуля и дату'); return; }
+  state.tx.push({ id: uid(), type: $('txType').value, amount, category: $('txCat').value, date, note: $('txNote').value.trim() });
+  month = date.slice(0, 7);
+  $('txAmount').value = '';
+  $('txNote').value = '';
+  save();
+};
+
+// Subscriptions
+$('subForm').onsubmit = e => {
+  e.preventDefault();
+  const name = $('subName').value.trim();
+  const amount = parseAmount($('subAmount').value);
+  if (!name || !amount) { alert('Введите название и сумму'); return; }
+  state.subs.push({ id: uid(), name, amount, period: $('subPeriod').value });
+  e.target.reset();
+  save();
+};
+
+// Debts
+$('debtForm').onsubmit = e => {
+  e.preventDefault();
+  const name = $('debtName').value.trim();
+  const total = parseAmount($('debtAmount').value);
+  if (!name || !total) { alert('Введите имя и сумму'); return; }
+  state.debts.push({ id: uid(), name, direction: $('debtDir').value, total, payments: [] });
+  e.target.reset();
+  save();
+};
+document.addEventListener('submit', e => {
+  const id = e.target.dataset.pay;
+  if (!id) return;
+  e.preventDefault();
+  const debt = state.debts.find(d => d.id === id);
+  const amount = parseAmount(e.target.elements.amount.value);
+  if (!debt || !amount) { alert('Введите сумму больше нуля'); return; }
+  debt.payments.push({ id: uid(), amount: Math.min(amount, debtLeft(debt)), date: todayISO() });
+  save();
+});
+
+// Delete any record marked with data-del="<listName>:<id>"
+document.addEventListener('click', e => {
+  const btn = e.target.closest('[data-del]');
+  if (!btn) return;
+  const [key, id] = btn.dataset.del.split(':');
+  if (!confirm('Удалить запись?')) return;
+  state[key] = state[key].filter(x => x.id !== id);
+  save();
+});
+
+// Backup and restore
+$('exportBtn').onclick = () => {
+  const url = URL.createObjectURL(new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }));
+  Object.assign(document.createElement('a'), { href: url, download: `finance-${todayISO()}.json` }).click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+$('importBtn').onclick = () => $('importFile').click();
+$('importFile').onchange = async e => {
+  try {
+    const data = JSON.parse(await e.target.files[0].text());
+    if (!Array.isArray(data.tx) || !Array.isArray(data.subs) || !Array.isArray(data.debts)) throw new Error('bad file');
+    state = { currency: '₽', ...data };
+    save();
+  } catch {
+    alert('Это не похоже на файл экспорта этого приложения');
+  }
+  e.target.value = '';
+};
+
+$('txDate').value = todayISO();
+fillCats();
+render();
+</script>
+</body>
+</html>
